@@ -1,68 +1,48 @@
 import { useState } from "react";
-import logo from "../assets/falconfeeds-logo.svg";
-import verified_tick from "../assets/verified-tick.svg";
-import technisanct from "../assets/technisanct.svg";
 import google_logo from "../assets/google-logo.svg";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
+import AuthLeftSection from "../components/AuthLeftSection";
+import apiRequest from "../utils/apiRequest";
+import { useNavigate } from "react-router-dom";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  console.log(error);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+
+    try {
+      const res = await apiRequest.post(
+        `/auth/${isLogin ? "login" : "signup"}`,
+        data
+      );
+
+      localStorage.setItem("token", res.data.data.token);
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    }
+  };
 
   return (
     <div className="bg-[#0A0A0B] text-[#E5E5E5] h-screen w-full flex">
       {/* Left section */}
-      <div className="w-3/5 place-items-center py-6">
-        <div className="w-3/5 h-full flex flex-col items-start justify-around ">
-          <div className="flex items-center gap-5">
-            <img src={logo} alt="falconfeeds logo" />
-            <p className="font-semibold text-4xl uppercase satoshi">
-              falconfeeds
-              <span className="text-[#EB2323]">.</span>io
-            </p>
-          </div>
-          <h1 className="font-bold text-5xl leading-14 text-[#D4D4D4] public-sans">
-            Hunt, Identify and <br />
-            <span className="text-[#16A374]"> Act</span> on{" "}
-            <span className="text-[#EB2F2F]"> threats</span> before <br />
-            they can harm you<span className="text-[#EB2F2F]">.</span>
-          </h1>
-          <ul className="flex flex-col items-start text-[#B6B6B6] gap-3">
-            <li>
-              <div className="flex items-center gap-4 font-normal text-[20px]">
-                <img src={verified_tick} alt="verified tick image" />
-                <p>Comprehensive threat actor directory</p>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center gap-4 font-normal text-[20px]">
-                <img src={verified_tick} alt="verified tick image" />
-                <p>Constantly updated threat feeds</p>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center gap-4 font-normal text-[20px]">
-                <img src={verified_tick} alt="verified tick image" />
-                <p>Safe source for tracking threat actors and campaigns</p>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center gap-4 font-normal text-[20px]">
-                <img src={verified_tick} alt="verified tick image" />
-                <p>Data funnelled from all parts of the internet</p>
-              </div>
-            </li>
-          </ul>
-          <div className="flex flex-col items-start text-[#B6B6B6]">
-            <p>Powered by</p>
-            <img src={technisanct} alt="powered by technisanct img" />
-          </div>
-        </div>
-      </div>
+      <AuthLeftSection />
       {/* Right section */}
       <div className="w-2/5 bg-[#171717]">
         {isLogin ? (
-          <form className="w-full h-full place-items-center">
+          <form
+            key="signInForm"
+            className="w-full h-full place-items-center"
+            onSubmit={handleSubmit}
+          >
             <div className="w-2/3 h-full flex flex-col items-center justify-center gap-6">
               <h2 className="text-[#E5E5E5] font-bold text-[28px] self-start">
                 Sign in
@@ -72,8 +52,10 @@ const Auth = () => {
               </p>
               <div className="relative w-full">
                 <input
-                  type="text"
+                  type="email"
                   id="email"
+                  required
+                  name="email"
                   className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
                   placeholder=""
                 />
@@ -88,6 +70,8 @@ const Auth = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
+                  required
+                  name="password"
                   className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
                   placeholder=""
                 />
@@ -141,7 +125,7 @@ const Auth = () => {
             </div>
           </form>
         ) : (
-          <form className="w-full h-full place-items-center">
+          <form key="singUpForm" className="w-full h-full place-items-center">
             <div className="w-2/3 h-full flex flex-col items-center justify-center gap-6">
               <h2 className="text-[#E5E5E5] font-bold text-[28px] self-start">
                 Sign up for free
