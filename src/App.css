@@ -7,3 +7,20 @@
 a {
   text-decoration: none;
 }
+
+.satoshi {
+  font-family: "Satoshi", sans-serif;
+}
+
+.public-sans {
+  font-family: "Public Sans", sans-serif;
+}
+
+li {
+  list-style: none;
+}
+
+body {
+  background-color: #0a0a0b;
+  color: #d4d4d4;
+}

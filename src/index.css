@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("./assets/fonts/Satoshi-Variable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@100;200;300;400;500;600;700&family=Public+Sans:wght@100..900&family=Raleway:wght@100..900&family=Poppins:wght@100..900&family=Epilogue:wght@100..900&display=swap");
