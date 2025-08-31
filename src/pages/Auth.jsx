@@ -13,21 +13,10 @@ const Auth = () => {
   const [acceptTerms, setAcceptTerms] = useState(true);
   const [showTermsError, setShowTermsError] = useState(false);
   const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
-  const [passwordValue, setPasswordValue] = useState("");
   const navigate = useNavigate();
 
   const emailRegex = /^\S+@\S+\.\S+$/;
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-
-  const getPasswordValidation = (password) => {
-    return {
-      length: password.length >= 8,
-      number: /(?=.*\d)/.test(password),
-      lowercase: /(?=.*[a-z])/.test(password),
-      uppercase: /(?=.*[A-Z])/.test(password),
-      special: /(?=.*[-_~!@#$%^&*`+=|;:><,.?/])/.test(password),
-    };
-  };
 
   const {
     register,
@@ -56,9 +45,10 @@ const Auth = () => {
             backdropFilter: "blur(5px)",
             boxShadow: "0px 4px 8px 2px #00000066",
             opacity: 1,
-            position: "fixed",
+            position: "absolute",
             top: "2rem",
-            right: "1rem",
+            left: "50%",
+            transform: "translateX(-50%)",
             zIndex: 9999,
             pointerEvents: "auto",
           }}
@@ -352,54 +342,14 @@ const Auth = () => {
                   Email
                 </label>
               </div>
-              {/* <div className="relative w-full">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  id="signup-password"
-                  name="signup-password"
-                  {...register("password", {
-                    required: "Password is required",
-                    pattern: {
-                      value: passwordRegex,
-                      message:
-                        "Password must be at least 8 characters with letters and numbers",
-                    },
-                  })}
-                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
-                ${
-                  errors.password
-                    ? "border-red-500"
-                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                }
-              `}
-                />
-                <label
-                  htmlFor="signup-password"
-                  className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
-                >
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-2 flex items-center text-gray-500 dark:text-gray-400"
-                >
-                  {showPassword ? (
-                    <MdOutlineVisibilityOff size={18} />
-                  ) : (
-                    <MdOutlineVisibility size={18} />
-                  )}
-                </button>
-              </div> */}
               <div className="relative w-full">
-                {/* Password Tooltip */}
                 {!isLogin && showPasswordTooltip && (
                   <div
-                    className="absolute left-0 transform -translate-x-full -translate-y-1/2 top-0 ml-[-16px] z-[999999] -bottom-[12rem]"
-                    style={{ width: "280px", zIndex: "9999999999999999" }}
+                    className="absolute left-0 transform -translate-x-full -translate-y-1/2 top-1/2 ml-[-16px] z-[999999]  -bottom-56"
+                    style={{ width: "280px", zIndex: "999999" }}
                   >
                     <div
-                      className="bg-[#262626] rounded-md p-4 shadow-lg"
+                      className="bg-[#262626] rounded-md p-3 shadow-lg flex flex-col gap-2"
                       style={{
                         backdropFilter: "blur(5px)",
                       }}
@@ -407,60 +357,38 @@ const Auth = () => {
                       {/* Tooltip arrow */}
                       <div className="absolute -right-2 bottom-2 transform translate-x-[1px] -translate-y-1/2">
                         <div className="w-0 h-0 border-l-8 border-l-[#262626] border-t-8 border-t-transparent border-b-8 border-b-transparent"></div>
-                        <div className="w-0 h-0 border-l-8 border-l-[#262626] border-t-8 border-t-transparent border-b-8 border-b-transparent absolute right-[1px] top-0"></div>
                       </div>
-                      <div className="space-y-2">
-                        {[
+                      <div className="flex items-center gap-2">
+                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
+                        <span className="text-xs text-[#FAFAFA]">
+                          Must be atleast 8 characters
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
+                        <span className="text-xs text-[#FAFAFA]">
+                          Must contain atleast 1 number
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
+                        <span className="text-xs text-[#FAFAFA]">
+                          Must contain atleast 1 lowercase
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
+                        <span className="text-xs text-[#FAFAFA]">
+                          Must contain atleast 1 uppercase
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
+                        <span className="text-xs text-[#FAFAFA]">
                           {
-                            key: "length",
-                            text: "Must be atleast 8 characters",
-                            check: getPasswordValidation(passwordValue).length,
-                          },
-                          {
-                            key: "number",
-                            text: "Must contain atleast 1 number",
-                            check: getPasswordValidation(passwordValue).number,
-                          },
-                          {
-                            key: "lowercase",
-                            text: "Must contain atleast 1 lowercase",
-                            check:
-                              getPasswordValidation(passwordValue).lowercase,
-                          },
-                          {
-                            key: "uppercase",
-                            text: "Must contain atleast 1 uppercase",
-                            check:
-                              getPasswordValidation(passwordValue).uppercase,
-                          },
-                          {
-                            key: "special",
-                            text: (
-                              <p>
-                                {
-                                  "Must contain at least 1 special character -_~!@#$%^&*`+=|;:><,.?/"
-                                }
-                              </p>
-                            ),
-                            check: getPasswordValidation(passwordValue).special,
-                          },
-                        ].map((item) => (
-                          <div
-                            key={item.key}
-                            className="flex items-center gap-2"
-                          >
-                            <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
-                            <span
-                              className={`text-xs ${
-                                item.check
-                                  ? "text-[#16A374]"
-                                  : "text-[##FAFAFA]"
-                              }`}
-                            >
-                              {item.text}
-                            </span>
-                          </div>
-                        ))}
+                            "Must contain at least 1 special character -_~!@#$%^&*`+=|;:><,.?/"
+                          }
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -478,9 +406,8 @@ const Auth = () => {
                         "Password must be at least 8 characters with letters and numbers",
                     },
                   })}
-                  onFocus={() => setShowPasswordTooltip(true)}
+                  onFocus={() => !isLogin && setShowPasswordTooltip(true)}
                   onBlur={() => setShowPasswordTooltip(false)}
-                  onChange={(e) => setPasswordValue(e.target.value)}
                   className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
                 ${
                   errors.password
