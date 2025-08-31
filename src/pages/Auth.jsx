@@ -12,7 +12,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(true);
   const [showTermsError, setShowTermsError] = useState(false);
-  const [showPasswordTooltip, setShowPasswordTooltip] = useState(true);
+  const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
   const [passwordValue, setPasswordValue] = useState("");
   const navigate = useNavigate();
 
@@ -39,7 +39,6 @@ const Auth = () => {
     mode: "onBlur",
   });
 
-  // Custom toast with fixed close button
   const showCustomToast = (message) => {
     toast.custom(
       (t) => (
@@ -97,7 +96,7 @@ const Auth = () => {
   // Reset form when switching between login/signup
   const handleFormSwitch = (isLoginMode) => {
     setIsLogin(isLoginMode);
-    reset(); 
+    reset();
     setShowTermsError(false);
   };
 
