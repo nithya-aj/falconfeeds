@@ -12,10 +12,22 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(true);
   const [showTermsError, setShowTermsError] = useState(false);
+  const [showPasswordTooltip, setShowPasswordTooltip] = useState(true);
+  const [passwordValue, setPasswordValue] = useState("");
   const navigate = useNavigate();
 
   const emailRegex = /^\S+@\S+\.\S+$/;
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+  const getPasswordValidation = (password) => {
+    return {
+      length: password.length >= 8,
+      number: /(?=.*\d)/.test(password),
+      lowercase: /(?=.*[a-z])/.test(password),
+      uppercase: /(?=.*[A-Z])/.test(password),
+      special: /(?=.*[-_~!@#$%^&*`+=|;:><,.?/])/.test(password),
+    };
+  };
 
   const {
     register,
@@ -28,7 +40,7 @@ const Auth = () => {
   });
 
   // Custom toast with fixed close button
-  const showCustomToast = (message, type = "error") => {
+  const showCustomToast = (message) => {
     toast.custom(
       (t) => (
         <div
@@ -85,7 +97,7 @@ const Auth = () => {
   // Reset form when switching between login/signup
   const handleFormSwitch = (isLoginMode) => {
     setIsLogin(isLoginMode);
-    reset(); // Clear all form fields
+    reset(); 
     setShowTermsError(false);
   };
 
@@ -131,7 +143,7 @@ const Auth = () => {
       {/* Left section */}
       <AuthLeftSection />
       {/* Right section */}
-      <div className="w-2/5 bg-[#171717] relative overflow-hidden">
+      <div className="w-2/5 bg-[#171717] relative">
         <Toaster
           position="top-center"
           reverseOrder={false}
@@ -341,7 +353,7 @@ const Auth = () => {
                   Email
                 </label>
               </div>
-              <div className="relative w-full">
+              {/* <div className="relative w-full">
                 <input
                   type={showPassword ? "text" : "password"}
                   id="signup-password"
@@ -361,6 +373,122 @@ const Auth = () => {
                     : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
                 }
               `}
+                />
+                <label
+                  htmlFor="signup-password"
+                  className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
+                >
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-2 flex items-center text-gray-500 dark:text-gray-400"
+                >
+                  {showPassword ? (
+                    <MdOutlineVisibilityOff size={18} />
+                  ) : (
+                    <MdOutlineVisibility size={18} />
+                  )}
+                </button>
+              </div> */}
+              <div className="relative w-full">
+                {/* Password Tooltip */}
+                {!isLogin && showPasswordTooltip && (
+                  <div
+                    className="absolute left-0 transform -translate-x-full -translate-y-1/2 top-0 ml-[-16px] z-[999999] -bottom-[12rem]"
+                    style={{ width: "280px", zIndex: "9999999999999999" }}
+                  >
+                    <div
+                      className="bg-[#262626] rounded-md p-4 shadow-lg"
+                      style={{
+                        backdropFilter: "blur(5px)",
+                      }}
+                    >
+                      {/* Tooltip arrow */}
+                      <div className="absolute -right-2 bottom-2 transform translate-x-[1px] -translate-y-1/2">
+                        <div className="w-0 h-0 border-l-8 border-l-[#262626] border-t-8 border-t-transparent border-b-8 border-b-transparent"></div>
+                        <div className="w-0 h-0 border-l-8 border-l-[#262626] border-t-8 border-t-transparent border-b-8 border-b-transparent absolute right-[1px] top-0"></div>
+                      </div>
+                      <div className="space-y-2">
+                        {[
+                          {
+                            key: "length",
+                            text: "Must be atleast 8 characters",
+                            check: getPasswordValidation(passwordValue).length,
+                          },
+                          {
+                            key: "number",
+                            text: "Must contain atleast 1 number",
+                            check: getPasswordValidation(passwordValue).number,
+                          },
+                          {
+                            key: "lowercase",
+                            text: "Must contain atleast 1 lowercase",
+                            check:
+                              getPasswordValidation(passwordValue).lowercase,
+                          },
+                          {
+                            key: "uppercase",
+                            text: "Must contain atleast 1 uppercase",
+                            check:
+                              getPasswordValidation(passwordValue).uppercase,
+                          },
+                          {
+                            key: "special",
+                            text: (
+                              <p>
+                                {
+                                  "Must contain at least 1 special character -_~!@#$%^&*`+=|;:><,.?/"
+                                }
+                              </p>
+                            ),
+                            check: getPasswordValidation(passwordValue).special,
+                          },
+                        ].map((item) => (
+                          <div
+                            key={item.key}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
+                            <span
+                              className={`text-xs ${
+                                item.check
+                                  ? "text-[#16A374]"
+                                  : "text-[##FAFAFA]"
+                              }`}
+                            >
+                              {item.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="signup-password"
+                  name="signup-password"
+                  {...register("password", {
+                    required: "Password is required",
+                    pattern: {
+                      value: passwordRegex,
+                      message:
+                        "Password must be at least 8 characters with letters and numbers",
+                    },
+                  })}
+                  onFocus={() => setShowPasswordTooltip(true)}
+                  onBlur={() => setShowPasswordTooltip(false)}
+                  onChange={(e) => setPasswordValue(e.target.value)}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                ${
+                  errors.password
+                    ? "border-red-500"
+                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                }
+                `}
                 />
                 <label
                   htmlFor="signup-password"
