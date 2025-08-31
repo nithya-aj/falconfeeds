@@ -4,19 +4,100 @@ import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import AuthLeftSection from "../components/AuthLeftSection";
 import apiRequest from "../utils/apiRequest";
 import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
+import { useForm } from "react-hook-form";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [showTermsError, setShowTermsError] = useState(false);
   const navigate = useNavigate();
-  console.log(error);
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
 
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    reset,
+  } = useForm({
+    mode: "onBlur",
+  });
+
+  // Custom toast with fixed close button
+  const showCustomToast = (message, type = "error") => {
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? "animate-enter" : "animate-leave"
+          } flex items-center justify-between`}
+          style={{
+            width: "80%",
+            padding: "0.8rem 1rem",
+            borderRadius: "6px",
+            border: "0.5px solid #C71E1E",
+            gap: "16px",
+            background: "#1A0A0ACC",
+            backdropFilter: "blur(5px)",
+            boxShadow: "0px 4px 8px 2px #00000066",
+            opacity: 1,
+            position: "fixed",
+            top: "2rem",
+            right: "1rem",
+            zIndex: 9999,
+            pointerEvents: "auto",
+          }}
+        >
+          <p className="text-base font-medium text-[#FFC7C7] flex-1">
+            {message}
+          </p>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toast.dismiss(t.id);
+            }}
+            className="text-[#737373] hover:text-[#999999] font-bold cursor-pointer flex-shrink-0 p-1"
+            style={{
+              minWidth: "24px",
+              minHeight: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              pointerEvents: "auto",
+            }}
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+      ),
+      {
+        duration: 4000,
+      }
+    );
+  };
+
+  // Reset form when switching between login/signup
+  const handleFormSwitch = (isLoginMode) => {
+    setIsLogin(isLoginMode);
+    reset(); // Clear all form fields
+    setShowTermsError(false);
+  };
+
+  const onSubmit = async (data) => {
+    if (!isLogin && !acceptTerms) {
+      setShowTermsError(true);
+      showCustomToast(
+        "Please accept the terms of service and privacy policy to create your account"
+      );
+      return;
+    }
+    setShowTermsError(false);
 
     try {
       const res = await apiRequest.post(
@@ -27,7 +108,21 @@ const Auth = () => {
       localStorage.setItem("token", res.data.data.token);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      const msg =
+        err.response?.data?.message || "Oops! Something broke at our end";
+      showCustomToast(msg, "error");
+
+      // API errors
+      if (msg.toLowerCase().includes("email")) {
+        setError("email", { type: "manual", message: msg });
+      }
+      if (msg.toLowerCase().includes("password")) {
+        setError("password", { type: "manual", message: msg });
+      }
+      if (msg.toLowerCase().includes("unauthorized")) {
+        setError("email", { type: "manual", message: msg });
+        setError("password", { type: "manual", message: msg });
+      }
     }
   };
 
@@ -36,12 +131,23 @@ const Auth = () => {
       {/* Left section */}
       <AuthLeftSection />
       {/* Right section */}
-      <div className="w-2/5 bg-[#171717]">
+      <div className="w-2/5 bg-[#171717] relative overflow-hidden">
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          containerStyle={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 999,
+          }}
+        />
         {isLogin ? (
           <form
             key="signInForm"
             className="w-full h-full place-items-center"
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(onSubmit)}
           >
             <div className="w-2/3 h-full flex flex-col items-center justify-center gap-6">
               <h2 className="text-[#E5E5E5] font-bold text-[28px] self-start">
@@ -53,14 +159,25 @@ const Auth = () => {
               <div className="relative w-full">
                 <input
                   type="email"
-                  id="email"
-                  required
-                  name="email"
-                  className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                  placeholder=""
+                  id="login-email"
+                  name="login-email"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: emailRegex,
+                      message: "Invalid email format",
+                    },
+                  })}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                ${
+                  errors.email
+                    ? "border-red-500"
+                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                }
+              `}
                 />
                 <label
-                  htmlFor="email"
+                  htmlFor="login-email"
                   className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
                 >
                   Email
@@ -69,14 +186,26 @@ const Auth = () => {
               <div className="relative w-full">
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="password"
-                  required
-                  name="password"
-                  className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                  placeholder=""
+                  id="login-password"
+                  name="login-password"
+                  {...register("password", {
+                    required: "Password is required",
+                    pattern: {
+                      value: passwordRegex,
+                      message:
+                        "Password must be at least 8 characters with letters and numbers",
+                    },
+                  })}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                ${
+                  errors.password
+                    ? "border-red-500"
+                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                }
+              `}
                 />
                 <label
-                  htmlFor="password"
+                  htmlFor="login-password"
                   className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
                 >
                   Password
@@ -113,9 +242,9 @@ const Auth = () => {
                 </p>
               </button>
               <p className="font-normal text-[16px] text-[#E5E5E5]">
-                Don’t have an account?{" "}
+                Don't have an account?{" "}
                 <span
-                  onClick={() => setIsLogin(false)}
+                  onClick={() => handleFormSwitch(false)}
                   className="text-[#16A374] cursor-pointer"
                 >
                   {" "}
@@ -125,7 +254,11 @@ const Auth = () => {
             </div>
           </form>
         ) : (
-          <form key="singUpForm" className="w-full h-full place-items-center">
+          <form
+            key="signUpForm"
+            className="w-full h-full place-items-center"
+            onSubmit={handleSubmit(onSubmit)}
+          >
             <div className="w-2/3 h-full flex flex-col items-center justify-center gap-6">
               <h2 className="text-[#E5E5E5] font-bold text-[28px] self-start">
                 Sign up for free
@@ -137,12 +270,21 @@ const Auth = () => {
                 <div className="relative w-full">
                   <input
                     type="text"
-                    id="first_name"
-                    className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                    id="signup-firstname"
+                    name="signup-firstname"
+                    {...register("firstName", {
+                      required: "First name is required",
+                    })}
+                    className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 
+                      ${
+                        errors.firstName
+                          ? "border-red-500"
+                          : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                      }`}
                     placeholder=""
                   />
                   <label
-                    htmlFor="first_name"
+                    htmlFor="signup-firstname"
                     className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
                   >
                     First name
@@ -151,12 +293,21 @@ const Auth = () => {
                 <div className="relative w-full">
                   <input
                     type="text"
-                    id="last_name"
-                    className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                    id="signup-lastname"
+                    name="signup-lastname"
+                    {...register("lastName", {
+                      required: "Last name is required",
+                    })}
+                    className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 
+                      ${
+                        errors.lastName
+                          ? "border-red-500"
+                          : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                      }`}
                     placeholder=""
                   />
                   <label
-                    htmlFor="last_name"
+                    htmlFor="signup-lastname"
                     className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
                   >
                     Last name
@@ -165,13 +316,26 @@ const Auth = () => {
               </div>
               <div className="relative w-full">
                 <input
-                  type="text"
-                  id="email"
-                  className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                  placeholder=""
+                  type="email"
+                  id="signup-email"
+                  name="signup-email"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: emailRegex,
+                      message: "Invalid email format",
+                    },
+                  })}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                ${
+                  errors.email
+                    ? "border-red-500"
+                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                }
+              `}
                 />
                 <label
-                  htmlFor="email"
+                  htmlFor="signup-email"
                   className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
                 >
                   Email
@@ -180,12 +344,26 @@ const Auth = () => {
               <div className="relative w-full">
                 <input
                   type={showPassword ? "text" : "password"}
-                  id="password"
-                  className="block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                  placeholder=""
+                  id="signup-password"
+                  name="signup-password"
+                  {...register("password", {
+                    required: "Password is required",
+                    pattern: {
+                      value: passwordRegex,
+                      message:
+                        "Password must be at least 8 characters with letters and numbers",
+                    },
+                  })}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                ${
+                  errors.password
+                    ? "border-red-500"
+                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
+                }
+              `}
                 />
                 <label
-                  htmlFor="password"
+                  htmlFor="signup-password"
                   className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
                 >
                   Password
@@ -202,23 +380,59 @@ const Auth = () => {
                   )}
                 </button>
               </div>
-              <div className="flex items-start gap-1">
+              <label
+                htmlFor="signup-terms-checkbox"
+                className="flex items-start gap-3 cursor-pointer select-none"
+              >
                 <input
-                  defaultChecked
-                  id="checked-checkbox"
+                  id="signup-terms-checkbox"
                   type="checkbox"
-                  value=""
-                  className="w-5 h-5 rounded-xs accent-[#16A374] border-gray-300 focus:ring-[#16A374]"
+                  checked={acceptTerms}
+                  onChange={(e) => {
+                    setAcceptTerms(e.target.checked);
+                    if (e.target.checked) setShowTermsError(false);
+                  }}
+                  className="sr-only"
                 />
-                <label
-                  for="checked-checkbox"
-                  className="ms-2 text-sm font-medium text-[#E5E5E5]"
+                <span
+                  aria-hidden="true"
+                  className={`w-4 h-4 rounded-xs flex items-center justify-center flex-shrink-0 transition-all
+                    ${
+                      acceptTerms
+                        ? "bg-[#16A374] border-2 border-[#16A374]"
+                        : showTermsError
+                        ? "bg-transparent border-2 border-[#C71E1E]"
+                        : "bg-transparent border-2 border-gray-300"
+                    }`}
+                  style={{ lineHeight: 0 }}
                 >
-                  Creating an account means you’re okay with our{" "}
-                  <span className="text-[#7C7CF7]"> Terms of Service </span> and{" "}
-                  <span className="text-[#7C7CF7]">Privacy Policy </span>
-                </label>
-              </div>
+                  {acceptTerms && (
+                    <svg
+                      width="14"
+                      height="10"
+                      viewBox="0 0 14 10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M1 5.2L4.4 8.4L13 1"
+                        stroke="#FFFFFF"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </span>
+
+                <span className={`text-sm font-medium text-[#E5E5E5]`}>
+                  Creating an account means you're okay with our{" "}
+                  <span className="text-[#7C7CF7]">Terms of Service</span> and{" "}
+                  <span className="text-[#7C7CF7]">Privacy Policy</span>
+                </span>
+              </label>
+
               <button
                 type="submit"
                 className="h-[44px] w-full bg-[#16A374] text-[#FAFAFA] text-[16px] flex items-center justify-center rounded-sm cursor-pointer"
@@ -238,7 +452,7 @@ const Auth = () => {
               <p className="font-normal text-[16px] text-[#E5E5E5]">
                 Already have an account?{" "}
                 <span
-                  onClick={() => setIsLogin(true)}
+                  onClick={() => handleFormSwitch(true)}
                   className="text-[#16A374] cursor-pointer"
                 >
                   Sign in
