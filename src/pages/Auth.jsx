@@ -1,5 +1,6 @@
 import { useState } from "react";
 import google_logo from "../assets/google-logo.svg";
+import logo from "../assets/falconfeeds-logo.svg";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import AuthLeftSection from "../components/AuthLeftSection";
 import apiRequest from "../utils/apiRequest";
@@ -132,7 +133,7 @@ const Auth = () => {
       {/* Left section */}
       <AuthLeftSection />
       {/* Right section */}
-      <div className="w-2/5 bg-[#171717] relative">
+      <div className="w-full md:w-1/2 lg:w-2/5 sm:bg-[#171717] relative">
         <Toaster
           position="top-center"
           reverseOrder={false}
@@ -144,14 +145,25 @@ const Auth = () => {
             zIndex: 999,
           }}
         />
+        <div
+          className={` ${
+            isLogin ? "top-10" : "top-6"
+          } flex items-center gap-5 absolute  w-4/5 xs:w-2/3 left-1/2 -translate-x-1/2 md:hidden`}
+        >
+          <img src={logo} alt="falconfeeds logo" className="h-8" />
+          <p className="font-semibold text-[22px] uppercase satoshi">
+            falconfeeds
+            <span className="text-[#EB2323]">.</span>io
+          </p>
+        </div>
         {isLogin ? (
           <form
             key="signInForm"
             className="w-full h-full place-items-center"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="w-2/3 h-full flex flex-col items-center justify-center gap-6">
-              <h2 className="text-[#E5E5E5] font-bold text-[28px] self-start">
+            <div className="w-4/5 lg:w-2/3 h-full flex flex-col items-center justify-center gap-3 md:gap-3 lg:gap-4 xl:gap-6">
+              <h2 className="text-[#E5E5E5] font-bold text-2xl md:text-[23px] lg:text-2xl xl:text-[28px] self-start">
                 Sign in
               </h2>
               <p className="text-[#737373] text-[16px] self-start">
@@ -236,7 +248,7 @@ const Auth = () => {
                 <div className="border border-[#262626] w-1/2"></div> or{" "}
                 <div className="border border-[#262626] w-1/2"></div>
               </div>
-              <button className="bg-[#4285F4] rounded-[3px] p-1 flex items-center h-[46px] gap-6 w-3/5 cursor-pointer">
+              <button className="bg-[#4285F4] rounded-[3px] p-1 flex items-center h-[46px] gap-6 w-3/4 xs:w-3/4 md:w-[80%] lg:w-3/4 xl:w-3/5 cursor-pointer">
                 <img src={google_logo} alt="google logo" />
                 <p className="font-medium text-sm text-[#FFFFFF]">
                   Continue with Google
@@ -260,14 +272,14 @@ const Auth = () => {
             className="w-full h-full place-items-center"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="w-2/3 h-full flex flex-col items-center justify-center gap-6">
-              <h2 className="text-[#E5E5E5] font-bold text-[28px] self-start">
+            <div className="w-4/5 xs:w-2/3 h-full flex flex-col items-center justify-center gap-3 md:gap-3 lg:gap-4 xl:gap-6">
+              <h2 className="text-[#E5E5E5] font-bold text-2xl md:text-[23px] lg:text-2xl xl:text-[28px] self-start">
                 Sign up for free
               </h2>
               <p className="text-[#737373] text-[16px] self-start">
                 Get started right away, no credit card required!
               </p>
-              <div className="flex items-center gap-7 w-full">
+              <div className="flex items-center gap-2 sm:gap-4 md:gap-5 lg:gap-6 xl:gap-7 w-full">
                 <div className="relative w-full">
                   <input
                     type="text"
@@ -344,20 +356,21 @@ const Auth = () => {
               </div>
               <div className="relative w-full">
                 {!isLogin && showPasswordTooltip && (
-                  <div
-                    className="absolute left-0 transform -translate-x-full -translate-y-1/2 top-1/2 ml-[-16px] z-[999999]  -bottom-56"
-                    style={{ width: "280px", zIndex: "999999" }}
-                  >
+                  <div className="absolute md:left-0 md:top-1/2 md:-translate-x-full md:-translate-y-1/2 md:ml-[-16px] left-0 -top-3 -translate-y-full w-[280px] z-[999999]">
                     <div
-                      className="bg-[#262626] rounded-md p-3 shadow-lg flex flex-col gap-2"
-                      style={{
-                        backdropFilter: "blur(5px)",
-                      }}
+                      className="bg-[#262626] rounded-md p-3 shadow-lg flex flex-col gap-2 relative"
+                      style={{ backdropFilter: "blur(5px)" }}
                     >
                       {/* Tooltip arrow */}
-                      <div className="absolute -right-2 bottom-2 transform translate-x-[1px] -translate-y-1/2">
+                      <div className="absolute -right-2 top-1/2 -translate-y-1/2 hidden md:block">
                         <div className="w-0 h-0 border-l-8 border-l-[#262626] border-t-8 border-t-transparent border-b-8 border-b-transparent"></div>
                       </div>
+
+                      {/* Tooltip arrow for xs devices */}
+                      <div className="absolute left-4 bottom-[-8px] block md:hidden">
+                        <div className="w-0 h-0 border-t-8 border-t-[#262626] border-l-8 border-l-transparent border-r-8 border-r-transparent"></div>
+                      </div>
+
                       <div className="flex items-center gap-2">
                         <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
                         <span className="text-xs text-[#FAFAFA]">
@@ -480,7 +493,9 @@ const Auth = () => {
                   )}
                 </span>
 
-                <span className={`text-sm font-medium text-[#E5E5E5]`}>
+                <span
+                  className={`text-xs xs:text-sm font-medium text-[#E5E5E5]`}
+                >
                   Creating an account means you're okay with our{" "}
                   <span className="text-[#7C7CF7]">Terms of Service</span> and{" "}
                   <span className="text-[#7C7CF7]">Privacy Policy</span>
@@ -497,7 +512,7 @@ const Auth = () => {
                 <div className="border border-[#262626] w-1/2"></div> or{" "}
                 <div className="border border-[#262626] w-1/2"></div>
               </div>
-              <button className="bg-[#4285F4] rounded-[3px] p-1 flex items-center h-[46px] gap-6 w-3/5 cursor-pointer">
+              <button className="bg-[#4285F4] rounded-[3px] p-1 flex items-center h-[46px] gap-6 w-3/4 xs:w-3/4 md:w-[80%] lg:w-3/4 xl:w-3/5 cursor-pointer">
                 <img src={google_logo} alt="google logo" />
                 <p className="font-medium text-sm text-[#FFFFFF]">
                   Continue with Google
