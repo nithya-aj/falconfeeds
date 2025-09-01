@@ -7,6 +7,7 @@ import apiRequest from "../utils/apiRequest";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { useForm } from "react-hook-form";
+import { passwordRules } from "../utils/passwordRules";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,18 +17,22 @@ const Auth = () => {
   const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
   const navigate = useNavigate();
 
-  const emailRegex = /^\S+@\S+\.\S+$/;
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-
   const {
     register,
     handleSubmit,
+    watch,
+    trigger,
     formState: { errors },
     setError,
     reset,
-  } = useForm({
-    mode: "onBlur",
-  });
+  } = useForm({ mode: "onBlur" });
+
+  const emailRegex = /^\S+@\S+\.\S+$/;
+
+  const validatePassword = (value) => {
+    const failedRule = passwordRules.find((rule) => !rule.test(value));
+    return failedRule ? failedRule.label : true;
+  };
 
   const showCustomToast = (message) => {
     toast.custom(
@@ -203,19 +208,14 @@ const Auth = () => {
                   name="login-password"
                   {...register("password", {
                     required: "Password is required",
-                    pattern: {
-                      value: passwordRegex,
-                      message:
-                        "Password must be at least 8 characters with letters and numbers",
-                    },
                   })}
-                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
-                ${
-                  errors.password
-                    ? "border-red-500"
-                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                }
-              `}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm bg-transparent rounded-[1.5px] border-1 
+                    ${
+                      errors.password
+                        ? "border-red-500"
+                        : "border-[#404040] dark:border-[#262626] focus:border-[#404040]"
+                    }
+                  `}
                 />
                 <label
                   htmlFor="login-password"
@@ -235,6 +235,7 @@ const Auth = () => {
                   )}
                 </button>
               </div>
+
               <p className="font-medium text-sm text-[#16A374] self-start">
                 Forgot password?
               </p>
@@ -355,54 +356,37 @@ const Auth = () => {
                 </label>
               </div>
               <div className="relative w-full">
-                {!isLogin && showPasswordTooltip && (
-                  <div className="absolute md:left-0 md:top-1/2 md:-translate-x-full md:-translate-y-1/2 md:ml-[-16px] left-0 -top-3 -translate-y-full w-[280px] z-[999999]">
-                    <div
-                      className="bg-[#262626] rounded-md p-3 shadow-lg flex flex-col gap-2 relative"
-                      style={{ backdropFilter: "blur(5px)" }}
-                    >
-                      {/* Tooltip arrow */}
-                      <div className="absolute -right-2 top-1/2 -translate-y-1/2 hidden md:block">
+                {showPasswordTooltip && (
+                  <div className="absolute md:left-0 md:top-1/2 md:-translate-x-full md:-translate-y-1/2 md:ml-[-16px] left-0 -top-3 -translate-y-full w-[280px] z-[999999] md:-bottom-60 ">
+                    <div className="bg-[#262626] rounded-md p-3 shadow-lg flex flex-col gap-2 relative">
+                      {/* tooltip arrow */}
+                      <div className="absolute -right-2 bottom-0 -translate-y-1/2 hidden md:block">
                         <div className="w-0 h-0 border-l-8 border-l-[#262626] border-t-8 border-t-transparent border-b-8 border-b-transparent"></div>
                       </div>
-
-                      {/* Tooltip arrow for xs devices */}
+                      {/* tooltip arrow for xs devices */}
                       <div className="absolute left-4 bottom-[-8px] block md:hidden">
                         <div className="w-0 h-0 border-t-8 border-t-[#262626] border-l-8 border-l-transparent border-r-8 border-r-transparent"></div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
-                        <span className="text-xs text-[#FAFAFA]">
-                          Must be atleast 8 characters
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
-                        <span className="text-xs text-[#FAFAFA]">
-                          Must contain atleast 1 number
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
-                        <span className="text-xs text-[#FAFAFA]">
-                          Must contain atleast 1 lowercase
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
-                        <span className="text-xs text-[#FAFAFA]">
-                          Must contain atleast 1 uppercase
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-1 h-1 min-w-1 bg-[#FAFAFA] rounded-full"></span>
-                        <span className="text-xs text-[#FAFAFA]">
-                          {
-                            "Must contain at least 1 special character -_~!@#$%^&*`+=|;:><,.?/"
-                          }
-                        </span>
-                      </div>
+                      {passwordRules.map((rule, i) => {
+                        const passed = rule.test(watch("password") || "");
+                        return (
+                          <div key={i} className="flex items-center gap-2">
+                            <span
+                              className={`w-1 h-1 min-w-1 rounded-full ${
+                                passed ? "bg-green-400" : "bg-[#FAFAFA]"
+                              }`}
+                            ></span>
+                            <span
+                              className={`text-xs ${
+                                passed ? "text-green-400" : "text-[#FAFAFA]"
+                              }`}
+                            >
+                              {rule.label}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -410,25 +394,24 @@ const Auth = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   id="signup-password"
-                  name="signup-password"
                   {...register("password", {
                     required: "Password is required",
-                    pattern: {
-                      value: passwordRegex,
-                      message:
-                        "Password must be at least 8 characters with letters and numbers",
-                    },
+                    validate: validatePassword,
                   })}
                   onFocus={() => !isLogin && setShowPasswordTooltip(true)}
-                  onBlur={() => setShowPasswordTooltip(false)}
-                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
-                ${
-                  errors.password
-                    ? "border-red-500"
-                    : "border-[#404040] appearance-none dark:text-white dark:border-[#262626] dark:focus:border-[#404040] focus:outline-none focus:ring-0 focus:border-[#404040] peer"
-                }
-                `}
+                  onBlur={() => {
+                    setShowPasswordTooltip(false);
+                    trigger("password");
+                  }}
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm bg-transparent rounded-[1.5px] border-1 
+                      ${
+                        errors.password
+                          ? "border-red-500"
+                          : "border-[#404040] dark:border-[#262626] focus:border-[#404040]"
+                      }
+                    `}
                 />
+
                 <label
                   htmlFor="signup-password"
                   className="absolute text-sm text-[#737373] dark:text-[#737373] duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-[#171717] px-2 peer-focus:px-2 peer-focus:text-[#737373] peer-focus:dark:text-[#737373] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto start-1"
