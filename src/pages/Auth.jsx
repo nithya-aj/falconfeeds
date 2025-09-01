@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { passwordRules } from "../utils/passwordRules";
+import LoadingScreen from "../components/LoadingScreen";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,6 +16,7 @@ const Auth = () => {
   const [acceptTerms, setAcceptTerms] = useState(true);
   const [showTermsError, setShowTermsError] = useState(false);
   const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // showing loading screen
   const navigate = useNavigate();
 
   const {
@@ -113,7 +115,10 @@ const Auth = () => {
       );
 
       localStorage.setItem("token", res.data.data.token);
-      navigate("/");
+      setIsLoading(true);
+      setTimeout(() => {
+        navigate("/");
+      }, 2500);
     } catch (err) {
       const msg =
         err.response?.data?.message || "Oops! Something broke at our end";
@@ -133,12 +138,16 @@ const Auth = () => {
     }
   };
 
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="bg-[#0A0A0B] text-[#E5E5E5] h-screen w-full flex">
       {/* Left section */}
       <AuthLeftSection />
       {/* Right section */}
-      <div className="w-full md:w-1/2 lg:w-2/5 sm:bg-[#171717] relative">
+      <div className="w-full md:w-1/2 lg:w-2/5 bg-[#171717] relative">
         <Toaster
           position="top-center"
           reverseOrder={false}
@@ -167,7 +176,7 @@ const Auth = () => {
             className="w-full h-full place-items-center"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="w-4/5 lg:w-2/3 h-full flex flex-col items-center justify-center gap-3 md:gap-3 lg:gap-4 xl:gap-6">
+            <div className="w-4/5 lg:w-2/3 h-full flex flex-col items-center justify-center gap-8">
               <h2 className="text-[#E5E5E5] font-bold text-2xl md:text-[23px] lg:text-2xl xl:text-[28px] self-start">
                 Sign in
               </h2>
@@ -186,7 +195,7 @@ const Auth = () => {
                       message: "Invalid email format",
                     },
                   })}
-                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
                 ${
                   errors.email
                     ? "border-red-500"
@@ -293,7 +302,7 @@ const Auth = () => {
             className="w-full h-full place-items-center"
             onSubmit={handleSubmit(onSubmit)}
           >
-            <div className="w-4/5 xs:w-2/3 h-full flex flex-col items-center justify-center gap-3 md:gap-3 lg:gap-4 xl:gap-6">
+            <div className="w-4/5 xs:w-2/3 h-full flex flex-col items-center justify-center gap-8 ">
               <h2 className="text-[#E5E5E5] font-bold text-2xl md:text-[23px] lg:text-2xl xl:text-[28px] self-start">
                 Sign up for free
               </h2>
@@ -309,7 +318,7 @@ const Auth = () => {
                     {...register("firstName", {
                       required: "First name is required",
                     })}
-                    className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 
+                    className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm bg-transparent rounded-[1.5px] border-1 
                       ${
                         errors.firstName
                           ? "border-red-500"
@@ -332,7 +341,7 @@ const Auth = () => {
                     {...register("lastName", {
                       required: "Last name is required",
                     })}
-                    className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 
+                    className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm bg-transparent rounded-[1.5px] border-1 
                       ${
                         errors.lastName
                           ? "border-red-500"
@@ -360,7 +369,7 @@ const Auth = () => {
                       message: "Invalid email format",
                     },
                   })}
-                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm text-gray-900 bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
+                  className={`block px-2.5 pb-2.5 pt-4 w-full h-[44px] text-sm bg-transparent rounded-[1.5px] border-1 appearance-none dark:text-white peer
                 ${
                   errors.email
                     ? "border-red-500"
