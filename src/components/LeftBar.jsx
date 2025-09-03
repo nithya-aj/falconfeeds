@@ -7,7 +7,7 @@ import { MdEmojiFlags } from "react-icons/md";
 const LeftBar = () => {
   return (
     <>
-      <ul className="hidden xs:flex w-[22%] sm:w-1/6 md:w-[13%] h-ful flex-col items-center gap-4 uppercase">
+      <ul className="hidden xs:flex w-[160px] sm:w-[150px] md:w-[150px] lg:w-[180px] xl:w-[220px] 2xl:w-[300px] h-ful flex-col items-center gap-4 uppercase">
         <li className="flex flex-col items-center justify-center gap-2.5 text-[10px] text-[#A5B4FC] p-4 bg-[#17171F] rounded-[14px] cursor-pointer hover:bg-[#17171F]">
           <MdOutlineDashboard size={24} />
           <p>overview</p>

@@ -25,7 +25,6 @@ const Auth = () => {
     watch,
     trigger,
     formState: { errors, isSubmitting },
-    setError,
     reset,
   } = useForm({ mode: "onBlur" });
 
@@ -114,26 +113,37 @@ const Auth = () => {
         data
       );
 
-      localStorage.setItem("token", res.data.data.token);
-      setIsLoading(true);
-      setTimeout(() => {
-        navigate("/");
-      }, 2500);
+      if (isLogin) {
+        if (res.data.data.token) {
+          localStorage.setItem("token", res.data.data.token);
+        }
+        setIsLoading(true);
+        setTimeout(() => {
+          navigate("/");
+        }, 2500);
+      } else {
+        showCustomToast("Account created successfully! Please login.");
+        setIsLogin(true);
+        reset();
+      }
     } catch (err) {
       const msg =
         err.response?.data?.message || "Oops! Something broke at our end";
-      showCustomToast(msg, "error");
 
-      // API errors
-      if (msg.toLowerCase().includes("email")) {
-        setError("email", { type: "manual", message: msg });
-      }
-      if (msg.toLowerCase().includes("password")) {
-        setError("password", { type: "manual", message: msg });
-      }
-      if (msg.toLowerCase().includes("unauthorized")) {
-        setError("email", { type: "manual", message: msg });
-        setError("password", { type: "manual", message: msg });
+      if (isLogin) {
+        if (msg === "unauthorized") {
+          showCustomToast("You have entered the incorrect email or password!");
+        } else {
+          showCustomToast(msg);
+        }
+      } else {
+        if (msg === "user already exists") {
+          showCustomToast(
+            "An account already exists with this email. Please sign in instead!"
+          );
+        } else {
+          showCustomToast(msg);
+        }
       }
     }
   };

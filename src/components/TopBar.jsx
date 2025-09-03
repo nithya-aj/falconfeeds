@@ -26,7 +26,7 @@ const TopBar = () => {
   };
 
   return (
-    <div className="flex items-center justify-between uppercase py-8 px-10 md:px-12 lg:px-16 xl:px-20">
+    <div className="flex items-center justify-between uppercase py-8 px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-28 ">
       <div className="flex items-center md:gap-12 lg:gap-20">
         <img src={logo} alt="" className="h-auto lg:h-8" />
         <div className="items-center gap-7 hidden lg:flex ">
